@@ -177,7 +177,7 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
 
   // Сонголт сонгох функц
   const handleOptionSelect = (index: number) => {
-    if (isAnswerSubmitted && currentQuestion?.options && currentQuestion.options[selectedOption].isCorrect) {
+    if (isAnswerSubmitted && currentQuestion?.options && selectedOption !== null && currentQuestion.options[selectedOption].isCorrect) {
       // Хэрэв зөв хариулсан бол дахин хариулах боломжгүй
       return;
     }
@@ -287,7 +287,8 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
           
           {/* Дуу дахин тоглуулах товч */}
           {params.type === 'animals' && (
-            <button 
+            <button
+              title="Дуу дахин сонсох"
               onClick={replaySound}
               className="ml-4 p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition"
             >
@@ -376,6 +377,7 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
           <div className="mt-8 p-6 rounded-2xl w-full text-center bg-green-100 text-green-800">
             <p className="text-2xl mb-4">{feedback.message}</p>
             <button 
+              title="Дараагийн асуулт руу шилжих"
               onClick={handleNextQuestion} 
               className="py-4 px-8 bg-secondary text-white border-none rounded-2xl text-2xl cursor-pointer hover:bg-green-700 transition flex items-center justify-center"
             >
