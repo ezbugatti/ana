@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getQuestionsWithImages } from '@/utils/questions';
+import { playAudio } from '@/utils/speech';
 import { QuestionType } from '@/types';
-import { speakText } from '@/utils/speech';
 
 // Дуу хоолойнуудыг ачаалах функц
 function loadVoices() {
@@ -38,16 +37,38 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string } | null>(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [speechSupported, setSpeechSupported] = useState(true);
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [isCheckingAnswer, setIsCheckingAnswer] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const answerTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // iOS дээр аудио тоглуулахыг идэвхжүүлэх
+    const enableAudio = () => {
+      setAudioEnabled(true);
+      document.removeEventListener('click', enableAudio);
+      document.removeEventListener('touchstart', enableAudio);
+    };
+    
+    document.addEventListener('click', enableAudio);
+    document.addEventListener('touchstart', enableAudio);
+    
+    return () => {
+      document.removeEventListener('click', enableAudio);
+      document.removeEventListener('touchstart', enableAudio);
+      
+      // Таймерийг цэвэрлэх
+      if (answerTimeout.current) {
+        clearTimeout(answerTimeout.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Дуу хоолой дэмжигдэж байгаа эсэхийг шалгах
     if (typeof window !== 'undefined') {
-      setSpeechSupported('speechSynthesis' in window);
+      loadVoices();
     }
-    
-    // Дуу хоолойнуудыг ачаалах
-    loadVoices();
     
     async function loadQuestions() {
       setLoading(true);
@@ -67,16 +88,44 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
     loadQuestions();
   }, [params.type]);
 
+  // Хариулт өөрчлөгдөх үед автоматаар илгээх
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserAnswer(e.target.value);
+    const value = e.target.value;
+    setUserAnswer(value);
+    
+    // Хэрэв хариулт бичиж эхэлсэн бол таймер тохируулах
+    if (value.trim().length > 0) {
+      // Өмнөх таймерийг цэвэрлэх
+      if (answerTimeout.current) {
+        clearTimeout(answerTimeout.current);
+      }
+      
+      // Шинэ таймер тохируулах - 1.5 секундын дараа хариултыг илгээх
+      answerTimeout.current = setTimeout(() => {
+        if (!isAnswerSubmitted && value.trim().length > 0) {
+          handleSubmit(new Event('submit') as any);
+        }
+      }, 1500);
+    }
+  };
+
+  // Энтер дарах үед хариултыг илгээх
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (userAnswer.trim().length > 0 && !isAnswerSubmitted) {
+        handleSubmit(new Event('submit') as any);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!userAnswer.trim()) return;
+    if (!userAnswer.trim() || isAnswerSubmitted || isCheckingAnswer) return;
     
     setIsAnswerSubmitted(true);
+    setIsCheckingAnswer(true);
     
     try {
       // DeepSeek AI-тай холбогдох хэсэг
@@ -94,31 +143,57 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
       
       const data = await response.json();
       
-      setFeedback({
+      const feedbackMessage = {
         correct: data.isCorrect,
         message: data.feedback,
-      });
+      };
+      
+      setFeedback(feedbackMessage);
+      
+      // Зөв эсвэл буруу аудио тоглуулах
+      if (audioEnabled) {
+        playAudio(data.isCorrect ? 'correct' : 'wrong');
+      }
     } catch (error) {
       console.error('Error checking answer:', error);
       // Хэрэв API алдаа заавал энгийн шалгалт хийх
       const isCorrect = userAnswer.toLowerCase().includes(currentQuestion?.answer.toLowerCase() || '');
-      setFeedback({
+      const feedbackMessage = {
         correct: isCorrect,
-        message: isCorrect ? 'Зөв байна!' : 'Буруу байна. Дахин оролдоорой.',
-      });
+        message: isCorrect ? 'Зөв байна! Маш сайн!' : 'Буруу байна. Дахин оролдоорой.',
+      };
+      
+      setFeedback(feedbackMessage);
+      
+      // Зөв эсвэл буруу аудио тоглуулах
+      if (audioEnabled) {
+        playAudio(isCorrect ? 'correct' : 'wrong');
+      }
+    } finally {
+      setIsCheckingAnswer(false);
     }
   };
 
   const handleNextQuestion = () => {
     if (questionIndex < questions.length - 1) {
+      // Дараагийн асуулт руу шилжих аудио тоглуулах
+      if (audioEnabled) {
+        playAudio('next');
+      }
+      
       setQuestionIndex(questionIndex + 1);
       setCurrentQuestion(questions[questionIndex + 1]);
       setUserAnswer('');
       setFeedback(null);
       setIsAnswerSubmitted(false);
+      
+      // Фокусыг хариулт оруулах талбар руу шилжүүлэх
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     } else {
-      // Бүх асуултыг дууссан үед
-      router.push('/completed');
+      // Бүх асуултыг дууссан бол эхлэл хуудас руу буцах
+      router.push('/');
     }
   };
 
@@ -126,25 +201,29 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
     handleNextQuestion();
   };
 
-  // Асуултыг дуут хэлбэрээр хэлэх функц
-  const handleSpeakQuestion = () => {
-    if (currentQuestion) {
-      // Хэрэглэгчийн харилцан үйлдлээр дуу хоолойг идэвхжүүлэх
-      speakText(currentQuestion.question);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-gray-50">
-        <div className="text-2xl text-gray-600">Зургуудыг ачааллаж байна...</div>
-        <div className="mt-4 w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-full max-w-2xl bg-white rounded-3xl p-12 shadow-lg text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-solid mx-auto mb-4"></div>
+          <p className="mt-4 text-xl text-gray-600">Ачаалж байна...</p>
+        </div>
       </div>
     );
   }
 
   if (!currentQuestion) {
-    return <div className="text-2xl text-gray-600 flex justify-center items-center min-h-screen">Асуултууд олдсонгүй</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-gray-50">
+        <div className="w-full max-w-2xl bg-white rounded-3xl p-12 shadow-lg text-center">
+          <h1 className="text-3xl font-bold text-red-500 mb-4">Алдаа гарлаа</h1>
+          <p className="text-xl text-gray-700 mb-8">Асуултууд олдсонгүй.</p>
+          <Link href="/" className="py-4 px-8 bg-primary text-white border-none rounded-2xl text-xl cursor-pointer hover:bg-blue-700 transition">
+            Эхлэл хуудас руу буцах
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -170,7 +249,7 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
                 {/* Зургийн URL-ийг хэвлэх (зөвхөн хөгжүүлэлтийн үед) */}
                 {process.env.NODE_ENV === 'development' && (
                   <div className="mt-2 text-xs text-gray-500 break-all">
-                    URL: {currentQuestion.imageUrl}
+                    {/* URL: {currentQuestion.imageUrl} */}
                   </div>
                 )}
               </>
@@ -184,41 +263,32 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
         
         <div className="flex items-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800 text-center">{currentQuestion.question}</h2>
-          <button 
-            onClick={handleSpeakQuestion}
-            className="ml-4 p-4 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition shadow-md"
-            aria-label="Асуултыг дахин хэлэх"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-            </svg>
-          </button>
         </div>
-        
-        {!speechSupported && (
-          <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg text-sm">
-            Таны хөтөч дуут хэлэх функцийг дэмжихгүй байна. Chrome, Safari, эсвэл Edge хөтөч ашиглана уу.
-          </div>
-        )}
         
         <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
           <input
+            ref={inputRef}
             type="text"
             value={userAnswer}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             className="w-full py-6 px-4 text-2xl border-3 border-gray-300 rounded-2xl mb-4 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
             placeholder="Хариултаа бичнэ үү..."
             disabled={isAnswerSubmitted}
             autoFocus
           />
           
-          {!isAnswerSubmitted && (
-            <button 
-              type="submit" 
-              className="py-4 px-8 bg-primary text-white border-none rounded-2xl text-2xl cursor-pointer hover:bg-blue-700 transition"
-            >
-              Хариулах
-            </button>
+          {!isAnswerSubmitted && !isCheckingAnswer && userAnswer.trim().length > 0 && (
+            <div className="text-sm text-gray-500 mb-4">
+              Хариулт бичиж дууссан бол хүлээнэ үү...
+            </div>
+          )}
+          
+          {isCheckingAnswer && (
+            <div className="flex items-center justify-center mb-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-4 border-blue-500 border-solid"></div>
+              <span className="ml-3 text-gray-600">Хариултыг шалгаж байна...</span>
+            </div>
           )}
         </form>
         

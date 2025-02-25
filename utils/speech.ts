@@ -1,28 +1,33 @@
-// Текстийг дуут хэлбэрээр хэлэх хялбаршуулсан функц
-export function speakText(text: string, language: string = 'mn-MN') {
+// Аудио тоглуулах хялбар функц
+export function playAudio(type: 'correct' | 'wrong' | 'next') {
   // Хөтөч дээр ажиллаж байгаа эсэхийг шалгах
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-    console.error('Speech synthesis is not supported');
+  if (typeof window === 'undefined') {
     return;
   }
 
   try {
-    // Хэлэх үйлдлийг зогсоох
-    window.speechSynthesis.cancel();
-
-    // Шинэ дуут хэлэх үйлдэл үүсгэх
-    const utterance = new SpeechSynthesisUtterance(text);
+    // Аудио файлын зам
+    const audioPath = `/audio/${type}.mp3`;
     
-    // Хэл тохируулах
-    utterance.lang = language;
+    // Аудио элемент үүсгэх
+    const audio = new Audio(audioPath);
     
-    // Дуут хэлэх
-    window.speechSynthesis.speak(utterance);
-    
-    console.log('Speaking text:', text);
+    // Аудио тоглуулах
+    audio.play().catch(error => {
+      console.error('Error playing audio:', error);
+      
+      // iOS дээр хэрэглэгчийн харилцан үйлдэл шаардагддаг
+      console.log('Audio playback requires user interaction on iOS devices');
+    });
   } catch (error) {
-    console.error('Error speaking text:', error);
+    console.error('Error playing audio:', error);
   }
+}
+
+// Асуултыг дуут хэлбэрээр хэлэх функц (хэрэглэхгүй)
+export function speakText(text: string, language: string = 'mn-MN') {
+  // Энэ функцийг хэрэглэхгүй
+  console.log('Text-to-speech is disabled, using pre-recorded audio instead');
 }
 
 // Дуу хоолой тохируулж, хэлэх функц
