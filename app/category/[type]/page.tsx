@@ -104,23 +104,22 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
     // Хуучин аудиог зогсоох
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current = null;
+      audioRef.current.currentTime = 0;
     }
     
-    // Шинэ асуулт ачаалагдсан үед л аудио тоглуулах
     if (currentQuestion && currentQuestion.audioFile && params.type === 'animals') {
-      // Хүлээх
-      setTimeout(() => {
-        // Шинэ аудиог тоглуулах
-        const audio = new Audio(currentQuestion.audioFile);
-        audioRef.current = audio;
-        
+      // Шинэ аудиог тоглуулах
+      const audio = new Audio(currentQuestion.audioFile);
+      audioRef.current = audio;
+      
+      // Аудио бэлэн болсон үед тоглуулах
+      audio.addEventListener('canplaythrough', () => {
         if (audioEnabled) {
           audio.play().catch(error => {
             console.error('Error playing animal sound:', error);
           });
         }
-      }, 300); // Бага зэрэг хүлээх
+      });
     }
     
     // Цэвэрлэх функц
@@ -217,31 +216,23 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
 
   // Дараагийн асуулт руу шилжих
   const handleNextQuestion = () => {
-    // Одоогийн аудиог зогсоох
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    
     if (questionIndex < questions.length - 1) {
       setQuestionIndex(questionIndex + 1);
       setSelectedOption(null);
       setIsAnswerSubmitted(false);
       setFeedback(null);
+      setCurrentQuestion(questions[questionIndex + 1]);
+      
+      // Дараагийн асуулт руу шилжих дуу тоглуулах
+      playAudio('next');
     } else {
-      // Бүх асуултыг дууссан
+      // Бүх асуултууд дууссан бол эхлэл хуудас руу буцах
       router.push('/');
     }
   };
 
-  // Асуулт алгасах
+  // Асуултыг алгасах
   const handleSkipQuestion = () => {
-    // Одоогийн аудиог зогсоох
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    
     handleNextQuestion();
   };
 
