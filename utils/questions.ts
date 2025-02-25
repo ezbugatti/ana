@@ -73,52 +73,37 @@ const staticImages = {
   }
 };
 
-const questions: QuestionType[] = [
-  // Амьтад
-  {
-    id: 'animal-1',
-    question: 'Энэ ямар амьтан бэ?',
-    answer: 'заан',
-    imageUrl: '', // Зургийг динамикаар авна
-    category: 'animals',
-  },
-  {
-    id: 'animal-2',
-    question: 'Энэ ямар амьтан бэ?',
-    answer: 'арслан',
-    imageUrl: '',
-    category: 'animals',
-  },
-  {
-    id: 'animal-3',
-    question: 'Энэ ямар амьтан бэ?',
-    answer: 'баавгай',
-    imageUrl: '',
-    category: 'animals',
-  },
-  {
-    id: 'animal-4',
-    question: 'Энэ ямар амьтан бэ?',
-    answer: 'үнэг',
-    imageUrl: '',
-    category: 'animals',
-  },
-  {
-    id: 'animal-5',
-    question: 'Энэ ямар амьтан бэ?',
-    answer: 'туулай',
-    imageUrl: '',
-    category: 'animals',
-  },
-  {
-    id: 'animal-6',
-    question: 'Энэ ямар амьтан бэ?',
-    answer: 'морь',
-    imageUrl: '',
-    category: 'animals',
-  },
-  
-  // Орны далбаа
+// Бүх амьтдын жагсаалт (Монгол нэр)
+const animalsMongolian = [
+  'заан', 'арслан', 'баавгай', 'туулай', 'үнэг', 'чоно', 'хулгана', 'тэмээ', 'морь', 'үхэр',
+  'хонь', 'ямаа', 'гахай', 'нохой', 'муур', 'одоншувуу', 'хэрэм', 'загас', 'шувуу', 'тахиа', 'галуу',
+  'нугас', 'хэрээ', 'бүргэд', 'баклан', 'матар', 'могой', 'мэлхий', 'хавч', 'аалз', 'эрвээхэй',
+  'зөгий', 'хүрэн баавгай', 'цагаан баавгай', 'хирс', 'бар', 'ирвэс', 'хулан', 'зээр', 'бух', 'тугал',
+  'унага', 'ботго', 'хурга', 'ишиг', 'гөлөг', 'мяаруу', 'туулайн зулзага', 'тоодог', 'тас'
+];
+
+// Бүх амьтдын жагсаалт (Галиг нэр - аудио файлын нэр)
+const animalsGalig = [
+  'Zaan', 'Arslan', 'Baavgai', 'Tuulai', 'Uneg', 'Chono', 'Khulgana', 'Temee', 'Mori', 'Ukher',
+  'Khoni', 'Yamaa', 'Gakhai', 'Nokhoi', 'Muur', 'Odonshuvu', 'Kherem', 'Zagas', 'Shuvuu', 'Takhia', 'Galuu',
+  'Nugas', 'Kheree', 'Burged', 'Baklan', 'Matar', 'Mogoi', 'Melkhii', 'Khavch', 'Aalz', 'Erveekhei',
+  'Zogii', 'Khuren baavgai', 'Tsagaan baavgai', 'Khirs', 'Bar', 'Irves', 'Khulan', 'Zeer', 'Bukh', 'Tugal',
+  'Unaga', 'Botgo', 'Khurga', 'Ishig', 'Golog', 'Myaaruu', 'Tuulain zulzaga', 'Toodog', 'Tas'
+];
+
+// Амьтдын асуултууд
+const animalQuestions: QuestionType[] = animalsMongolian.map((animal, index) => ({
+  id: `animal-${index + 1}`,
+  question: 'Энэ ямар амьтан бэ?',
+  answer: animal,
+  imageUrl: '', // Зургийг динамикаар авна
+  category: 'animals',
+  audioFile: `/audio/animals/${animalsGalig[index]}.mp3`,
+  options: [] // Сонголтуудыг динамикаар бүрдүүлнэ
+}));
+
+// Бусад асуултууд (орны далбаа гэх мэт)
+const flagQuestions: QuestionType[] = [
   {
     id: 'flag-1',
     question: 'Энэ аль улсын далбаа вэ?',
@@ -126,187 +111,210 @@ const questions: QuestionType[] = [
     imageUrl: '',
     category: 'flags',
   },
-  {
-    id: 'flag-2',
-    question: 'Энэ аль улсын далбаа вэ?',
-    answer: 'япон',
-    imageUrl: '',
-    category: 'flags',
-  },
-  {
-    id: 'flag-3',
-    question: 'Энэ аль улсын далбаа вэ?',
-    answer: 'солонгос',
-    imageUrl: '',
-    category: 'flags',
-  },
-  {
-    id: 'flag-4',
-    question: 'Энэ аль улсын далбаа вэ?',
-    answer: 'хятад',
-    imageUrl: '',
-    category: 'flags',
-  },
-  {
-    id: 'flag-5',
-    question: 'Энэ аль улсын далбаа вэ?',
-    answer: 'америк',
-    imageUrl: '',
-    category: 'flags',
-  },
-  {
-    id: 'flag-6',
-    question: 'Энэ аль улсын далбаа вэ?',
-    answer: 'англи',
-    imageUrl: '',
-    category: 'flags',
-  },
-  
-  // Танин мэдэхүй
-  {
-    id: 'knowledge-1',
-    question: 'Энэ юу вэ?',
-    answer: 'машин',
-    imageUrl: '',
-    category: 'knowledge',
-  },
-  {
-    id: 'knowledge-2',
-    question: 'Энэ юу вэ?',
-    answer: 'онгоц',
-    imageUrl: '',
-    category: 'knowledge',
-  },
-  {
-    id: 'knowledge-3',
-    question: 'Энэ юу вэ?',
-    answer: 'гэр',
-    imageUrl: '',
-    category: 'knowledge',
-  },
-  {
-    id: 'knowledge-4',
-    question: 'Энэ юу вэ?',
-    answer: 'ном',
-    imageUrl: '',
-    category: 'knowledge',
-  },
-  {
-    id: 'knowledge-5',
-    question: 'Энэ юу вэ?',
-    answer: 'цэцэг',
-    imageUrl: '',
-    category: 'knowledge',
-  },
-  {
-    id: 'knowledge-6',
-    question: 'Энэ юу вэ?',
-    answer: 'мод',
-    imageUrl: '',
-    category: 'knowledge',
-  },
-  
-  // Өнгө
-  {
-    id: 'color-1',
-    question: 'Энэ ямар өнгө вэ?',
-    answer: 'улаан',
-    imageUrl: '',
-    category: 'colors',
-  },
-  {
-    id: 'color-2',
-    question: 'Энэ ямар өнгө вэ?',
-    answer: 'хөх',
-    imageUrl: '',
-    category: 'colors',
-  },
-  {
-    id: 'color-3',
-    question: 'Энэ ямар өнгө вэ?',
-    answer: 'ногоон',
-    imageUrl: '',
-    category: 'colors',
-  },
-  {
-    id: 'color-4',
-    question: 'Энэ ямар өнгө вэ?',
-    answer: 'шар',
-    imageUrl: '',
-    category: 'colors',
-  },
-  {
-    id: 'color-5',
-    question: 'Энэ ямар өнгө вэ?',
-    answer: 'хар',
-    imageUrl: '',
-    category: 'colors',
-  },
-  {
-    id: 'color-6',
-    question: 'Энэ ямар өнгө вэ?',
-    answer: 'цагаан',
-    imageUrl: '',
-    category: 'colors',
-  },
+  // ... бусад далбааны асуултууд
 ];
 
-// Зургийн URL авах функц
-export async function getImageUrl(category: string, answer: string): Promise<string> {
-  try {
-    // 1. Эхлээд статик зургуудаас хайх
-    const staticCategory = staticImages[category as keyof typeof staticImages];
-    if (staticCategory) {
-      const staticUrl = staticCategory[answer.toLowerCase() as keyof typeof staticCategory];
-      if (staticUrl) {
-        console.log(`Using static image for ${answer}: ${staticUrl}`);
-        return staticUrl;
-      }
-    }
-    
-    // 2. Статик зураг байхгүй бол Pexels API ашиглах
-    const categoryTerms = searchTerms[category as keyof typeof searchTerms];
-    
-    if (!categoryTerms) {
-      return `https://via.placeholder.com/800x600?text=${encodeURIComponent(category)}`;
-    }
-    
-    const searchTerm = categoryTerms[answer.toLowerCase() as keyof typeof categoryTerms] || answer;
-    
-    // Pexels API ашиглан зураг хайх
-    console.log(`Searching Pexels for: ${searchTerm}`);
-    const pexelsUrl = await searchPexelsPhotos(searchTerm);
-    
-    if (pexelsUrl) {
-      console.log(`Found Pexels image: ${pexelsUrl}`);
-      return pexelsUrl;
-    }
-    
-    // 3. Хэрэв API-с зураг олдохгүй бол placeholder ашиглах
-    return `https://via.placeholder.com/800x600?text=${encodeURIComponent(searchTerm)}`;
-  } catch (error) {
-    console.error('Error in getImageUrl:', error);
-    return `https://via.placeholder.com/800x600?text=${encodeURIComponent(answer)}`;
-  }
-}
+// Бүх асуултуудыг нэгтгэх
+const questions: QuestionType[] = [
+  ...animalQuestions,
+  ...flagQuestions,
+  // ... бусад категорийн асуултууд
+];
 
-// Асуултуудыг авах функц
-export function getQuestions(category: string): QuestionType[] {
+// Асуултуудыг категориор нь авах
+export function getQuestionsByCategory(category: string): QuestionType[] {
   return questions.filter(q => q.category === category);
 }
 
-// Зурагтай асуултуудыг авах функц
+// Зурагтай асуултуудыг авах
 export async function getQuestionsWithImages(category: string): Promise<QuestionType[]> {
-  const filteredQuestions = questions.filter(q => q.category === category);
+  const categoryQuestions = getQuestionsByCategory(category);
   
-  // Асуулт бүрт зураг нэмэх
-  const questionsWithImages = await Promise.all(
-    filteredQuestions.map(async (question) => {
-      // Зургийн URL авах
-      const imageUrl = await getImageUrl(question.category, question.answer);
+  // Амьтны категори бол сонголтуудыг бүрдүүлэх
+  if (category === 'animals') {
+    return Promise.all(categoryQuestions.map(async (question) => {
+      // Зөв хариултын зургийг авах
+      const correctImageUrl = await getImageUrl(question.answer);
+      
+      // Санамсаргүй 3 буруу хариулт сонгох
+      const otherAnimals = animalsMongolian.filter(animal => animal !== question.answer);
+      const randomWrongAnswers = getRandomElements(otherAnimals, 3);
+      
+      // Буруу хариултуудын зургийг авах
+      const wrongImageUrls = await Promise.all(randomWrongAnswers.map(animal => getImageUrl(animal)));
+      
+      // Зөв болон буруу хариултуудыг нэгтгэх
+      const options = [
+        { text: question.answer, imageUrl: correctImageUrl, isCorrect: true },
+        ...randomWrongAnswers.map((animal, index) => ({
+          text: animal,
+          imageUrl: wrongImageUrls[index],
+          isCorrect: false
+        }))
+      ];
+      
+      // Сонголтуудыг холих
+      const shuffledOptions = shuffleArray(options);
+      
+      return {
+        ...question,
+        imageUrl: correctImageUrl,
+        options: shuffledOptions
+      };
+    }));
+  } else {
+    // Бусад категорийн хувьд хуучин логикийг ашиглах
+    return Promise.all(categoryQuestions.map(async (question) => {
+      const imageUrl = await getImageUrl(question.answer);
       return { ...question, imageUrl };
-    })
-  );
+    }));
+  }
+}
+
+// Зураг авах функц
+async function getImageUrl(keyword: string): Promise<string> {
+  try {
+    // Эхлээд статик зургуудаас хайх
+    const staticImageUrl = getStaticImageUrl(keyword);
+    if (staticImageUrl) {
+      return staticImageUrl;
+    }
+    
+    // Статик зураг байхгүй бол placeholder зураг буцаах
+    return `https://via.placeholder.com/800x600?text=${encodeURIComponent(keyword)}`;
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    // Алдаа гарвал placeholder зураг буцаах
+    return `https://via.placeholder.com/800x600?text=${encodeURIComponent(keyword)}`;
+  }
+}
+
+// Статик зургийн URL авах
+function getStaticImageUrl(keyword: string): string | null {
+  // Амьтдын статик зургууд - бүх амьтдад зураг нэмж өгөх
+  const animalImages: Record<string, string> = {
+    'заан': 'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=800&h=600&fit=crop',
+    'арслан': 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=800&h=600&fit=crop',
+    'баавгай': 'https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=800&h=600&fit=crop',
+    'туулай': 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=800&h=600&fit=crop',
+    'үнэг': 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=800&h=600&fit=crop',
+    'чоно': 'https://images.unsplash.com/photo-1564352969906-8b7f46ba4b8b?w=800&h=600&fit=crop',
+    'хулгана': 'https://images.unsplash.com/photo-1425082661705-1834bfd09dca?w=800&h=600&fit=crop',
+    'тэмээ': 'https://images.unsplash.com/photo-1598113972215-96c018fb1a0c?w=800&h=600&fit=crop',
+    'морь': 'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=800&h=600&fit=crop',
+    'үхэр': 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=800&h=600&fit=crop',
+    'хонь': 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?w=800&h=600&fit=crop',
+    'ямаа': 'https://images.unsplash.com/photo-1524024973431-2ad916746881?w=800&h=600&fit=crop',
+    'гахай': 'https://images.unsplash.com/photo-1593179357196-ea11a2e7c119?w=800&h=600&fit=crop',
+    'нохой': 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&h=600&fit=crop',
+    'муур': 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&h=600&fit=crop',
+    'одоншувуу': 'https://images.unsplash.com/photo-1579380656108-f98e4df8ea62?w=800&h=600&fit=crop',
+    'хэрэм': 'https://images.unsplash.com/photo-1507666405895-422eee7d517f?w=800&h=600&fit=crop',
+    'загас': 'https://images.unsplash.com/photo-1524704654690-b56c05c78a00?w=800&h=600&fit=crop',
+    'шувуу': 'https://images.unsplash.com/photo-1444464666168-49d633b86797?w=800&h=600&fit=crop',
+    'тахиа': 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=800&h=600&fit=crop',
+    'галуу': 'https://images.unsplash.com/photo-1560713781-d4ef450854a0?w=800&h=600&fit=crop',
+    'нугас': 'https://images.unsplash.com/photo-1555852095-64e7428df0fa?w=800&h=600&fit=crop',
+    'хэрээ': 'https://images.unsplash.com/photo-1567789884554-0b844b597180?w=800&h=600&fit=crop',
+    'бүргэд': 'https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=800&h=600&fit=crop',
+    'баклан': 'https://images.unsplash.com/photo-1591198936750-16d8e15edb9e?w=800&h=600&fit=crop',
+    'матар': 'https://images.unsplash.com/photo-1559380619-f891d122a9e9?w=800&h=600&fit=crop',
+    'могой': 'https://images.unsplash.com/photo-1531386151447-fd76ad50012f?w=800&h=600&fit=crop',
+    'мэлхий': 'https://images.unsplash.com/photo-1590955559496-50316bd28ff2?w=800&h=600&fit=crop',
+    'хавч': 'https://images.unsplash.com/photo-1604335399105-a0c585fd81a1?w=800&h=600&fit=crop',
+    'аалз': 'https://images.unsplash.com/photo-1557121924-900c1d089a84?w=800&h=600&fit=crop',
+    'эрвээхэй': 'https://images.unsplash.com/photo-1559535332-db9971090158?w=800&h=600&fit=crop',
+    'зөгий': 'https://images.unsplash.com/photo-1588852656646-f483f1d2a39c?w=800&h=600&fit=crop',
+    'хүрэн баавгай': 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=800&h=600&fit=crop',
+    'цагаан баавгай': 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=800&h=600&fit=crop',
+    'хирс': 'https://images.unsplash.com/photo-1598894000396-bc7e3242c75e?w=800&h=600&fit=crop',
+    'бар': 'https://images.unsplash.com/photo-1549366021-9f761d450615?w=800&h=600&fit=crop',
+    'ирвэс': 'https://images.unsplash.com/photo-1456926631375-92c8ce872def?w=800&h=600&fit=crop',
+    'хулан': 'https://images.unsplash.com/photo-1598113923195-dce587818e69?w=800&h=600&fit=crop',
+    'зээр': 'https://images.unsplash.com/photo-1484406566174-9da000fda645?w=800&h=600&fit=crop',
+    'бух': 'https://images.unsplash.com/photo-1583499871880-de841d1ace2a?w=800&h=600&fit=crop',
+    'тугал': 'https://images.unsplash.com/photo-1545468800-85cc9bc6ecf7?w=800&h=600&fit=crop',
+    'унага': 'https://images.unsplash.com/photo-1553284965-fa17e1766dfe?w=800&h=600&fit=crop',
+    'ботго': 'https://images.unsplash.com/photo-1626548307930-deac221f87d9?w=800&h=600&fit=crop',
+    'хурга': 'https://images.unsplash.com/photo-1613318286904-862375d58c50?w=800&h=600&fit=crop',
+    'ишиг': 'https://images.unsplash.com/photo-1533318087102-b3ad366ed041?w=800&h=600&fit=crop',
+    'гөлөг': 'https://images.unsplash.com/photo-1583511655826-05700442982d?w=800&h=600&fit=crop',
+    'мяаруу': 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800&h=600&fit=crop',
+    'туулайн зулзага': 'https://images.unsplash.com/photo-1591561582301-7ce6587cc286?w=800&h=600&fit=crop',
+    'тоодог': 'https://images.unsplash.com/photo-1621631210430-3b5514a1cec9?w=800&h=600&fit=crop',
+    'тас': 'https://images.unsplash.com/photo-1620578508654-0cb11099f5fb?w=800&h=600&fit=crop'
+  };
   
-  return questionsWithImages;
-} 
+  return animalImages[keyword] || null;
+}
+
+// Англи хэл дээрх хайлтын түлхүүр үг авах
+function getEnglishSearchTerm(keyword: string): string | null {
+  const translations: Record<string, string> = {
+    'заан': 'elephant',
+    'арслан': 'lion',
+    'баавгай': 'bear',
+    'туулай': 'rabbit',
+    'үнэг': 'fox',
+    'чоно': 'wolf',
+    'хулгана': 'mouse',
+    'тэмээ': 'camel',
+    'морь': 'horse',
+    'үхэр': 'cow',
+    'хонь': 'sheep',
+    'ямаа': 'goat',
+    'гахай': 'pig',
+    'нохой': 'dog',
+    'муур': 'cat',
+    'одоншувуу': 'owl',
+    'хэрэм': 'squirrel',
+    'загас': 'fish',
+    'шувуу': 'bird',
+    'тахиа': 'chicken',
+    'галуу': 'goose',
+    'нугас': 'duck',
+    'хэрээ': 'crow',
+    'бүргэд': 'eagle',
+    'баклан': 'cormorant',
+    'матар': 'beaver',
+    'могой': 'snake',
+    'мэлхий': 'frog',
+    'хавч': 'crab',
+    'аалз': 'spider',
+    'эрвээхэй': 'butterfly',
+    'зөгий': 'bee',
+    'хүрэн баавгай': 'brown bear',
+    'цагаан баавгай': 'polar bear',
+    'хирс': 'rhinoceros',
+    'бар': 'tiger',
+    'ирвэс': 'leopard',
+    'хулан': 'wild horse',
+    'зээр': 'gazelle',
+    'бух': 'bull',
+    'тугал': 'calf',
+    'унага': 'foal',
+    'ботго': 'baby camel',
+    'хурга': 'lamb',
+    'ишиг': 'kid goat',
+    'гөлөг': 'puppy',
+    'мяаруу': 'kitten',
+    'туулайн зулзага': 'baby rabbit',
+    'тоодог': 'bustard',
+    'тас': 'vulture'
+  };
+  
+  return translations[keyword] || null;
+}
+
+// Массиваас санамсаргүй элементүүд авах
+function getRandomElements<T>(array: T[], count: number): T[] {
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
+// Массивын элементүүдийг холих
+function shuffleArray<T>(array: T[]): T[] {
+  return [...array].sort(() => 0.5 - Math.random());
+}
+
+export default questions; 

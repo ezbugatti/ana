@@ -24,6 +24,30 @@ export function playAudio(type: 'correct' | 'wrong' | 'next') {
   }
 }
 
+// Тодорхой аудио файл тоглуулах
+export function playCustomAudio(audioPath: string) {
+  // Хөтөч дээр ажиллаж байгаа эсэхийг шалгах
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    // Аудио элемент үүсгэх
+    const audio = new Audio(audioPath);
+    
+    // Аудио тоглуулах
+    return audio.play().catch(error => {
+      console.error('Error playing audio:', error);
+      
+      // iOS дээр хэрэглэгчийн харилцан үйлдэл шаардагддаг
+      console.log('Audio playback requires user interaction on iOS devices');
+    });
+  } catch (error) {
+    console.error('Error playing audio:', error);
+    return Promise.reject(error);
+  }
+}
+
 // Асуултыг дуут хэлбэрээр хэлэх функц (хэрэглэхгүй)
 export function speakText(text: string, language: string = 'mn-MN') {
   // Энэ функцийг хэрэглэхгүй

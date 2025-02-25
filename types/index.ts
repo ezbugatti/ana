@@ -3,5 +3,11 @@ export interface QuestionType {
   question: string;
   answer: string;
   imageUrl: string;
-  category: 'animals' | 'flags' | 'knowledge' | 'colors';
+  category: string;
+  audioFile?: string;
+  options?: {
+    text: string;
+    imageUrl: string;
+    isCorrect: boolean;
+  }[];
 } 
