@@ -40,7 +40,9 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [isCheckingAnswer, setIsCheckingAnswer] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const answerTimeout = useRef<NodeJS.Timeout | null>(null);
+  const lastInputTime = useRef<number>(0);
+  const lastInputValue = useRef<string>('');
+  const pasteDetected = useRef<boolean>(false);
 
   useEffect(() => {
     // iOS дээр аудио тоглуулахыг идэвхжүүлэх
@@ -56,11 +58,6 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
     return () => {
       document.removeEventListener('click', enableAudio);
       document.removeEventListener('touchstart', enableAudio);
-      
-      // Таймерийг цэвэрлэх
-      if (answerTimeout.current) {
-        clearTimeout(answerTimeout.current);
-      }
     };
   }, []);
 
@@ -88,35 +85,63 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
     loadQuestions();
   }, [params.type]);
 
-  // Хариулт өөрчлөгдөх үед автоматаар илгээх
+  // Хариулт өөрчлөгдөх үед шалгах
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    const currentTime = Date.now();
+    
+    // Хариултыг хадгалах
     setUserAnswer(value);
     
-    // Хэрэв хариулт бичиж эхэлсэн бол таймер тохируулах
-    if (value.trim().length > 0) {
-      // Өмнөх таймерийг цэвэрлэх
-      if (answerTimeout.current) {
-        clearTimeout(answerTimeout.current);
+    // Хэрэв хариулт хоосон бол буцах
+    if (value.trim().length === 0) {
+      return;
+    }
+    
+    // Хуулж тавьсан эсэхийг шалгах
+    if (value.length > lastInputValue.current.length + 1) {
+      pasteDetected.current = true;
+    }
+    
+    // Хамгийн сүүлийн оролтын утгыг хадгалах
+    lastInputValue.current = value;
+    
+    // Хэрэв хариулт бичигдсэн бол шалгах
+    if (!isAnswerSubmitted && !isCheckingAnswer) {
+      // Хуулж тавьсан бол шууд илгээх
+      if (pasteDetected.current) {
+        handleSubmit(new Event('submit') as any);
+        pasteDetected.current = false;
+        return;
       }
       
-      // Шинэ таймер тохируулах - 1.5 секундын дараа хариултыг илгээх
-      answerTimeout.current = setTimeout(() => {
-        if (!isAnswerSubmitted && value.trim().length > 0) {
-          handleSubmit(new Event('submit') as any);
-        }
-      }, 1500);
+      // Хэрэв хариулт бичиж дууссан бол илгээх (1 секундээс дээш хугацаанд бичээгүй)
+      const timeSinceLastInput = currentTime - lastInputTime.current;
+      if (timeSinceLastInput > 1000 && value.trim().length > 0) {
+        handleSubmit(new Event('submit') as any);
+      }
     }
+    
+    // Хамгийн сүүлийн оролтын цагийг хадгалах
+    lastInputTime.current = currentTime;
+  };
+
+  // Paste event шалгах
+  const handlePaste = () => {
+    pasteDetected.current = true;
   };
 
   // Энтер дарах үед хариултыг илгээх
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (userAnswer.trim().length > 0 && !isAnswerSubmitted) {
+      if (userAnswer.trim().length > 0 && !isAnswerSubmitted && !isCheckingAnswer) {
         handleSubmit(new Event('submit') as any);
       }
     }
+    
+    // Хамгийн сүүлийн оролтын цагийг шинэчлэх
+    lastInputTime.current = Date.now();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,49 +175,48 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
       
       setFeedback(feedbackMessage);
       
-      // Зөв эсвэл буруу аудио тоглуулах
-      if (audioEnabled) {
-        playAudio(data.isCorrect ? 'correct' : 'wrong');
+      // Зөв хариулт бол дуу тоглуулах
+      if (data.isCorrect) {
+        playAudio('correct');
+      } else {
+        playAudio('wrong');
       }
     } catch (error) {
       console.error('Error checking answer:', error);
-      // Хэрэв API алдаа заавал энгийн шалгалт хийх
-      const isCorrect = userAnswer.toLowerCase().includes(currentQuestion?.answer.toLowerCase() || '');
-      const feedbackMessage = {
-        correct: isCorrect,
-        message: isCorrect ? 'Зөв байна! Маш сайн!' : 'Буруу байна. Дахин оролдоорой.',
-      };
-      
-      setFeedback(feedbackMessage);
-      
-      // Зөв эсвэл буруу аудио тоглуулах
-      if (audioEnabled) {
-        playAudio(isCorrect ? 'correct' : 'wrong');
-      }
+      setFeedback({
+        correct: false,
+        message: 'Хариултыг шалгахад алдаа гарлаа. Дахин оролдоорой.'
+      });
     } finally {
       setIsCheckingAnswer(false);
     }
   };
 
   const handleNextQuestion = () => {
+    // Дараагийн асуулт руу шилжих
     if (questionIndex < questions.length - 1) {
-      // Дараагийн асуулт руу шилжих аудио тоглуулах
-      if (audioEnabled) {
-        playAudio('next');
-      }
-      
-      setQuestionIndex(questionIndex + 1);
-      setCurrentQuestion(questions[questionIndex + 1]);
+      const nextIndex = questionIndex + 1;
+      setQuestionIndex(nextIndex);
+      setCurrentQuestion(questions[nextIndex]);
       setUserAnswer('');
       setFeedback(null);
       setIsAnswerSubmitted(false);
+      setIsCheckingAnswer(false);
       
-      // Фокусыг хариулт оруулах талбар руу шилжүүлэх
+      // Дараагийн асуулт руу шилжих дуу тоглуулах
+      playAudio('next');
+      
+      // Хамгийн сүүлийн оролтын утгыг шинэчлэх
+      lastInputValue.current = '';
+      
+      // Фокус хийх
       setTimeout(() => {
-        inputRef.current?.focus();
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
       }, 100);
     } else {
-      // Бүх асуултыг дууссан бол эхлэл хуудас руу буцах
+      // Бүх асуултууд дууссан бол эхлэл хуудас руу буцах
       router.push('/');
     }
   };
@@ -272,17 +296,12 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
             value={userAnswer}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             className="w-full py-6 px-4 text-2xl border-3 border-gray-300 rounded-2xl mb-4 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
             placeholder="Хариултаа бичнэ үү..."
             disabled={isAnswerSubmitted}
             autoFocus
           />
-          
-          {!isAnswerSubmitted && !isCheckingAnswer && userAnswer.trim().length > 0 && (
-            <div className="text-sm text-gray-500 mb-4">
-              Хариулт бичиж дууссан бол хүлээнэ үү...
-            </div>
-          )}
           
           {isCheckingAnswer && (
             <div className="flex items-center justify-center mb-4">
