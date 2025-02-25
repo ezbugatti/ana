@@ -101,44 +101,35 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
 
   // Асуулт өөрчлөгдөх үед дуу тоглуулах
   useEffect(() => {
+    // Хуучин аудиог зогсоох
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    
     if (currentQuestion && currentQuestion.audioFile && params.type === 'animals') {
-      // Өмнөх аудиог зогсоох
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      
-      // Шинэ аудио үүсгэх
+      // Шинэ аудиог тоглуулах
       const audio = new Audio(currentQuestion.audioFile);
       audioRef.current = audio;
       
-      // Аудио тоглуулах
-      const playSound = () => {
-        if (audioRef.current) {
-          audioRef.current.play().catch(error => {
+      // Аудио бэлэн болсон үед тоглуулах
+      audio.addEventListener('canplaythrough', () => {
+        if (audioEnabled) {
+          audio.play().catch(error => {
             console.error('Error playing animal sound:', error);
           });
         }
-      };
-      
-      // Хэрэглэгчийн харилцан үйлдлийн дараа дуу тоглуулах
-      if (audioEnabled) {
-        // Хэрэв аудио идэвхжүүлсэн бол шууд тоглуулах
-        playSound();
-      } else {
-        // Хэрэглэгчийн харилцан үйлдлийг хүлээх
-        const handleInteraction = () => {
-          playSound();
-          document.removeEventListener('click', handleInteraction);
-        };
-        document.addEventListener('click', handleInteraction);
-        
-        return () => {
-          document.removeEventListener('click', handleInteraction);
-        };
-      }
+      });
     }
-  }, [currentQuestion, audioEnabled, params.type]);
+    
+    // Цэвэрлэх функц
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [currentQuestion, params.type, audioEnabled]);
 
   // Хуруугаар чирэх үйлдлийг боловсруулах функцууд
   const onTouchStart = (e: TouchEvent) => {
@@ -215,9 +206,9 @@ export default function CategoryPage({ params }: { params: { type: string } }) {
 
   // Дуу дахин тоглуулах функц
   const replaySound = () => {
-    if (currentQuestion && currentQuestion.audioFile) {
-      const audio = new Audio(currentQuestion.audioFile);
-      audio.play().catch(error => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(error => {
         console.error('Error replaying animal sound:', error);
       });
     }
